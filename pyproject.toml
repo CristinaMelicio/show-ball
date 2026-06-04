@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "show-ball"
+authors = [{ name = "Cristina Melicio", email = "cristina.rodrigues.melicio@gmail.com" }]
+description = "Train and evaluate a YOLO ball detector from video frame annotations."
+version = "0.0.1"
+requires-python = ">=3.12,<3.13"
+
+
+dependencies = [
+    "opencv-python<5,>=4.8.0",
+    "numpy>=1.26,<2.1",
+    "protobuf<6",
+    "click>=8,<9",
+    "ultralytics",
+    "torch>=2.6,<2.7",
+    "torchvision>=0.21,<0.22",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/show_ball", "tools"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
