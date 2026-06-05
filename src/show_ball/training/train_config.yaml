@@ -11,5 +11,5 @@ train:
   freeze: 0
   name: ball_yolo26
 
-  cos_lr: false
+  cos_lr: true
 
