@@ -9,7 +9,7 @@ from enum import StrEnum
 import numpy as np
 import numpy.typing as npt
 
-from show_ball.inference.ball_detector import Detection, BallDetector
+from show_ball.inference.ball_detector import BallDetector, Detection
 
 
 def center_position(det: Detection) -> tuple[int, int]:
@@ -243,4 +243,3 @@ class BallTracker:
             self._reset_tracking()
 
         return None, TrackerMode.LOST
-

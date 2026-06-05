@@ -1,6 +1,7 @@
 """
 Helper functions for finding neighbor labels and estimating missing positions
 """
+
 import random
 
 
@@ -108,8 +109,9 @@ def make_hard_negative_tile_near_position(
     max_tries: int = 20,
 ) -> tuple[int, int] | None:
     """
-    Creates a hard negative tile near an estimated ball position, but ensures the tile does not
-    contain the forbidden ball box.
+    Creates a hard negative tile near the estimated ball position.
+    The tile should contain/intersect the expected ball area,
+    because the ball is hidden/occluded there.
     """
 
     for _ in range(max_tries):
@@ -121,7 +123,7 @@ def make_hard_negative_tile_near_position(
         x0, y0 = clamp_tile_xy(x0, y0, tile_size, tile_size, img_w, img_h)
 
         tile_box = (x0, y0, x0 + tile_size, y0 + tile_size)
-        if not intersects(tile_box, forbidden_box):
+        if x0 <= x < x0 + tile_size and y0 <= y < y0 + tile_size:
             return x0, y0
 
     return None
@@ -196,4 +198,3 @@ def make_positive_tile(
     y0 = int(ball_y - tile_size / 2 + dy)
 
     return clamp_tile_xy(x0, y0, tile_size, tile_size, img_w, img_h)
-

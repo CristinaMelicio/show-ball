@@ -4,16 +4,15 @@ Convert a video and CSV labels into a YOLO tiled dataset.
 
 import argparse
 import csv
-import json
-import random
-from pathlib import Path
-
 import cv2
+import json
 import numpy as np
 import numpy.typing as npt
-
-from show_ball.dataset.helpers import make_positive_tile, make_negative_tile
-
+import random
+from pathlib import Path
+from show_ball.dataset.helpers import make_negative_tile, make_positive_tile, find_neighbor_labels, \
+    estimate_missing_ball_position
+from show_ball.dataset.helpers import make_hard_negative_tile_near_position
 
 def read_labels(csv_path: str) -> dict[int, tuple[float, float]]:
     """
@@ -62,7 +61,7 @@ def make_segments(total_frames: int, segment_len: int) -> list[tuple[int, int]]:
 
 
 def split_segments(
-    segments: list[tuple[int, int]], train_ratio: float, val_ratio: float, seed: int
+        segments: list[tuple[int, int]], train_ratio: float, val_ratio: float, seed: int
 ) -> dict[str, list[tuple[int, int]]]:
     """
     Randomly shuffles and splits the list of segments into training, validation, and test sets
@@ -88,8 +87,8 @@ def split_segments(
 
     return {
         "train": segments[:n_train],
-        "val": segments[n_train : n_train + n_val],
-        "test": segments[n_train + n_val :],
+        "val": segments[n_train: n_train + n_val],
+        "test": segments[n_train + n_val:],
     }
 
 
@@ -116,7 +115,7 @@ def get_split_for_frame(frame_idx: int, split_map: dict[str, list[tuple[int, int
 
 
 def yolo_box_from_xy(
-    x: float, y: float, img_w: int, img_h: int, box_w: int, box_h: int
+        x: float, y: float, img_w: int, img_h: int, box_w: int, box_h: int
 ) -> tuple[float, float, float, float]:
     """
     Converts (x, y) coordinates of the ball into YOLO format (x_center, y_center, width, height)
@@ -144,7 +143,7 @@ def yolo_box_from_xy(
 
 
 def ball_box_xyxy(
-    x: float, y: float, box_w: float, box_h: float
+        x: float, y: float, box_w: float, box_h: float
 ) -> tuple[float, float, float, float]:
     """
     Given the (x, y) coordinates of the ball and the desired width and height of the bounding box,
@@ -170,13 +169,13 @@ def ball_box_xyxy(
 
 
 def yolo_label_for_tile(
-    ball_x: float,
-    ball_y: float,
-    tile_x0: int,
-    tile_y0: int,
-    tile_size: int,
-    box_w: float,
-    box_h: float,
+        ball_x: float,
+        ball_y: float,
+        tile_x0: int,
+        tile_y0: int,
+        tile_size: int,
+        box_w: float,
+        box_h: float,
 ) -> tuple[float, float, float, float] | None:
     """
     Calculates the YOLO label (x_center, y_center, width, height) for the ball relative to a given
@@ -208,21 +207,21 @@ def yolo_label_for_tile(
 
 
 def save_tile(
-    frame: npt.NDArray[np.uint8],
-    out_dir: Path,
-    split_name: str,
-    stem: str,
-    tile_idx: int,
-    x0: int,
-    y0: int,
-    tile_size: int,
-    label=None,
+        frame: npt.NDArray[np.uint8],
+        out_dir: Path,
+        split_name: str,
+        stem: str,
+        tile_idx: int,
+        x0: int,
+        y0: int,
+        tile_size: int,
+        label=None,
 ) -> None:
     """
     Saves a tile of the frame as an image and its corresponding label in YOLO format.
     """
 
-    tile = frame[y0 : y0 + tile_size, x0 : x0 + tile_size]
+    tile = frame[y0: y0 + tile_size, x0: x0 + tile_size]
     image_out = out_dir / "images" / split_name / f"{stem}_tile_{tile_idx:03d}.jpg"
     label_out = out_dir / "labels" / split_name / f"{stem}_tile_{tile_idx:03d}.txt"
 
@@ -237,20 +236,19 @@ def save_tile(
 
 
 def main():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--video", required=True)
     parser.add_argument("--labels-csv", required=True)
     parser.add_argument("--out-dir", required=True)
-    parser.add_argument("--box-w", type=float, required=True)
-    parser.add_argument("--box-h", type=float, required=True)
+    parser.add_argument("--box-w", type=float, default=16)
+    parser.add_argument("--box-h", type=float, default=16)
     parser.add_argument("--tile-size", type=int, default=640)
     parser.add_argument("--pos-tiles-per-frame", type=int, default=2)
     parser.add_argument("--neg-tiles-per-frame", type=int, default=1)
-    parser.add_argument("--frame-stride", type=int, default=5)
+    parser.add_argument("--frame-stride", type=int, default=10)
     parser.add_argument("--hard-neg-neighbour-distance", type=int, default=15)
-    parser.add_argument("--hard-neg-tiles-for-missing-label", type=int, default=1)
+    parser.add_argument("--hard-neg-tiles-for-missing-label", type=int, default=2)
     parser.add_argument("--hard-neg-offset-min", type=int, default=80)
     parser.add_argument("--hard-neg-offset-max", type=int, default=220)
     parser.add_argument("--jitter", type=float, default=0.35)
@@ -258,6 +256,7 @@ def main():
     parser.add_argument("--train-ratio", type=float, default=0.5)
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--frame-start",type=int, default=160, help="Ignore all frames before this frame index")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -269,8 +268,9 @@ def main():
         (out_dir / "images" / split).mkdir(parents=True, exist_ok=True)
         (out_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
 
-    labels = read_labels(args.labels_csv)
-    labels = sorted(labels.keys())
+    label_map = read_labels(args.labels_csv)
+    sorted_label_frames = sorted(label_map.keys())
+    label_frames = set(sorted_label_frames)
 
     cap = cv2.VideoCapture(str(video_path))
 
@@ -282,9 +282,7 @@ def main():
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     if args.tile_size > img_w or args.tile_size > img_h:
-        raise ValueError(
-            f"tile-size={args.tile_size} is larger than image size {img_w}x{img_h}"
-        )
+        raise ValueError(f"tile-size={args.tile_size} is larger than image size {img_w}x{img_h}")
 
     segments = make_segments(total_frames, args.segment_len)
 
@@ -306,7 +304,7 @@ def main():
         if not ok:
             break
 
-        if frame_idx % args.frame_stride != 0:
+        if frame_idx < args.frame_start:
             frame_idx += 1
             continue
 
@@ -318,39 +316,75 @@ def main():
         stem = f"{video_path.stem}_frame_{frame_idx:06d}"
 
         tile_idx = 0
-        if frame_idx not in labels:
-            continue
-        ball_x, ball_y = labels[frame_idx]
 
-        forbidden_box = ball_box_xyxy(
-            ball_x,
-            ball_y,
-            args.box_w,
-            args.box_h,
-        )
+        # --------------------------------------
+        # Case 1: visible ball / positive frame
+        # --------------------------------------
+        if frame_idx in label_frames:
+            if frame_idx % args.frame_stride != 0:
+                frame_idx += 1
+                continue
+            ball_x, ball_y = label_map[frame_idx]
 
-        # Positive tiles
-        for _ in range(args.pos_tiles_per_frame):
-            x0, y0 = make_positive_tile(
+            expected_ball_box = ball_box_xyxy(
                 ball_x,
                 ball_y,
-                img_w,
-                img_h,
-                args.tile_size,
-                args.jitter,
-            )
-
-            label = yolo_label_for_tile(
-                ball_x,
-                ball_y,
-                x0,
-                y0,
-                args.tile_size,
                 args.box_w,
                 args.box_h,
             )
 
-            if label is not None:
+            # Positive tiles
+            for _ in range(args.pos_tiles_per_frame):
+                x0, y0 = make_positive_tile(
+                    ball_x,
+                    ball_y,
+                    img_w,
+                    img_h,
+                    args.tile_size,
+                    args.jitter,
+                )
+
+                label = yolo_label_for_tile(
+                    ball_x,
+                    ball_y,
+                    x0,
+                    y0,
+                    args.tile_size,
+                    args.box_w,
+                    args.box_h,
+                )
+
+                if label is not None:
+                    save_tile(
+                        frame,
+                        out_dir,
+                        split_name,
+                        stem,
+                        tile_idx,
+                        x0,
+                        y0,
+                        args.tile_size,
+                        label=label,
+                    )
+
+                    tile_idx += 1
+                    saved_tiles += 1
+                    saved_positive += 1
+
+            # Negative tiles away from visible ball
+            for _ in range(args.neg_tiles_per_frame):
+                neg_xy = make_negative_tile(
+                    img_w,
+                    img_h,
+                    args.tile_size,
+                    forbidden_box=expected_ball_box,
+                )
+
+                if neg_xy is None:
+                    continue
+
+                x0, y0 = neg_xy
+
                 save_tile(
                     frame,
                     out_dir,
@@ -360,41 +394,84 @@ def main():
                     x0,
                     y0,
                     args.tile_size,
-                    label=label,
+                    label=None,
                 )
 
                 tile_idx += 1
                 saved_tiles += 1
-                saved_positive += 1
+                saved_negative += 1
 
-        # Negative tiles
-        for _ in range(args.neg_tiles_per_frame):
-            neg_xy = make_negative_tile(
-                img_w,
-                img_h,
-                args.tile_size,
-                forbidden_box=forbidden_box,
+        # -------------------------------------------------
+        # Case 2: missing label / ball hidden by the player
+        # -------------------------------------------------
+        else:
+            previous_label, next_label = find_neighbor_labels(
+                frame_idx,
+                sorted_label_frames,
+                label_map,
+                args.hard_neg_neighbour_distance,
             )
 
-            if neg_xy is None:
-                continue
-
-            x0, y0 = neg_xy
-            save_tile(
-                frame,
-                out_dir,
-                split_name,
-                stem,
-                tile_idx,
-                x0,
-                y0,
-                args.tile_size,
-                label=None,
+            estimated_position = estimate_missing_ball_position(
+                frame_idx,
+                previous_label,
+                next_label,
             )
 
-            tile_idx += 1
-            saved_tiles += 1
-            saved_negative += 1
+            for _ in range(args.hard_neg_tiles_for_missing_label):
+                neg_xy = None
+
+                # Prefer hard negatives near the expected hidden-ball location
+                if estimated_position is not None:
+                    est_x, est_y = estimated_position
+
+                    expected_ball_box = ball_box_xyxy(
+                        est_x,
+                        est_y,
+                        args.box_w,
+                        args.box_h,
+                    )
+
+                    neg_xy = make_hard_negative_tile_near_position(
+                        est_x,
+                        est_y,
+                        img_w,
+                        img_h,
+                        args.tile_size,
+                        forbidden_box=expected_ball_box,
+                        offset_min=args.hard_neg_offset_min,
+                        offset_max=args.hard_neg_offset_max,
+                    )
+
+                # Fallback: random negative tile
+                if neg_xy is None:
+                    neg_xy = make_negative_tile(
+                        img_w,
+                        img_h,
+                        args.tile_size,
+                        forbidden_box=None,
+                    )
+
+                if neg_xy is None:
+                    continue
+
+                x0, y0 = neg_xy
+
+                save_tile(
+                    frame,
+                    out_dir,
+                    split_name,
+                    stem,
+                    tile_idx,
+                    x0,
+                    y0,
+                    args.tile_size,
+                    label=None,
+                )
+
+                tile_idx += 1
+                saved_tiles += 1
+                saved_negative += 1
 
         frame_idx += 1
 

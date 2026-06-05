@@ -77,7 +77,8 @@ def main():
 
     if args.only_labeled:
         image_paths = [
-            p for p in image_paths
+            p
+            for p in image_paths
             if (labels_dir / f"{p.stem}.txt").exists()
             and (labels_dir / f"{p.stem}.txt").stat().st_size > 0
         ]

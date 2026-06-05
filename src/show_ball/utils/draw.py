@@ -61,4 +61,3 @@ def draw_detection(
     )
 
     return frame
-

@@ -3,13 +3,13 @@ data: /Users/cmelicio/PycharmProjects/show-ball/resources/dataset/data.yaml
 
 train:
   imgsz: 640
-  epochs: 50
+  epochs: 100
   batch: 8
   workers: 0
-  patience: 10
-  fraction: 0.2
+  patience: 20
+  fraction: 1
   freeze: 0
-  name: ball_yolo26
+  name: ball_yolo26_cos_lr
 
 # Color
   hsv_h: 0.015
@@ -17,21 +17,12 @@ train:
   hsv_v: 0.4
 
   # Geometry
-  degrees: 5.0
-  translate: 0.1
   scale: 0.3
-  shear: 0.0
-  perspective: 0.0
-
-  # Flips
-  fliplr: 0.5
-  flipud: 0.0
 
   # Mixing
-  mosaic: 0.3
-  close_mosaic: 10
-  mixup: 0.0
-  copy_paste: 0.0
+  mosaic: 0.0
+  close_mosaic: 0
 
-  # Occlusion
-  erasing: 0.0
+  cos_lr: true
+  lr0: 0.002
+  lrf: 0.01

@@ -1,5 +1,5 @@
 ROOT_DIR := $(shell pwd)
-VENV := $(ROOT_DIR)/.venv
+VENV := $(ROOT_DIR)/venv
 
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
@@ -12,13 +12,13 @@ install:
 
 .PHONY: clean
 clean:
-	rm -rf .pytest_cache .ruff_cache build dist runs
+	rm -rf .pytest_cache .ruff_cache build dist
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
 .PHONY: force-clean
 force-clean: clean
-	rm -rf .venv
+	rm -rf $(VENV)
 
 .PHONY: lint
 lint:
@@ -47,6 +47,6 @@ evaluate:
 
 .PHONY: export_to_tensorrt
 export_to_tensorrt:
-	$(PYTHON) -m tools.export_weight_to_tensorrt
+	$(PYTHON) -m tools.export_to_tensorrt
 
 .DEFAULT_GOAL := install

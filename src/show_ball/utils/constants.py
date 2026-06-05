@@ -1,6 +1,7 @@
 """
 Constants
 """
+
 from typing import Final
 
 #: Window name for the OpenCV display.

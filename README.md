@@ -31,27 +31,6 @@
    make export-tensorrt
    ```
 
-
-## Usage
-Run the ball tracker on a video:
-```
-python -m tools.run_pipeline \     
---weights path/to/weights \    
---video path/to/video \     
---output path/to/prediction \     
---show 
-```
-
-### Arguments
-
-| Argument | Description |
-|-----------|-------------|
-| --weights | Path to the trained model weights (for example best.pt). |
-| --video | Path to the input video file. |
-| --output | Path to the output CSV file containing ball position predictions. |
-| --show | Optional flag to display detections while processing the video. |
-
-
 # Tracking Pipeline
 
 ![Project Image](resources/docs/image.png)
@@ -74,11 +53,12 @@ For every frame, the pipeline:
 ## Tracking pipeline
 
 ```bash
-python show_ball.run_show_ball \
+python -m show_ball.run_show_ball \
     --video-path resources/video.mp4 \
     --weights-path run/weights/best.pt \
-    --output-path outputs \
+    --output-path output \
     --device auto
+    --show
 ```
 
 | Argument | Description                                                       |
@@ -96,13 +76,6 @@ python show_ball.run_show_ball \
 The pipeline generates:
 #### Predictions CSV
 This file contains the predicted ball center coordinates for each frame like
-
-  ```text
-  frame_no,ball_x,ball_y
-  0,523,312
-  1,526,309
-  ...
-  ```
 
 #### Annotated Video
 The video contains the original frames with the predicted ball position
@@ -147,7 +120,7 @@ Predictions that exist for frames without ground-truth annotations are counted a
 
 
 ```bash
-python show_ball.evaluate_show_ball \
+python -m show_ball.evaluate_show_ball \
     --predictions-path outputs/predictions.csv \
     --ground-truth-path resources/ground_truth.csv
 ```
@@ -170,7 +143,6 @@ frame_no,ball_x,ball_y
 1,125.1,454.2
 2,127.0,451.8
 ```
-
 
 | Column | Description |
 |----------|-------------|

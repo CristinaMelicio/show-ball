@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import csv
 import time
@@ -45,7 +43,7 @@ def run_tracking_pipeline_on_video(
 
     video_path = Path(video_path)
     output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.mkdir(parents=True, exist_ok=True)
     csv_output_file = output_path / PREDICTIONS_FILENAME
     video_output_file = output_path / ANNOTATED_VIDEO_FILENAME
 
@@ -165,7 +163,7 @@ def run_tracking_pipeline_on_video(
 @click.command("Run Tracking Pipeline")
 @click.option("--video-path", required=True, type=click.Path(exists=True))
 @click.option("--output-path", default="output/", type=click.Path(exists=False))
-@click.option("--weights-path", required=True, type=click.Path(exists=True))
+@click.option("--weights-path", default="run/weights/best.pt", type=click.Path(exists=True))
 @click.option("--device", default="auto", type=click.Choice(["auto", "cpu", "cuda", "mps"]))
 @click.option("--start-frame", default=0, type=int)
 @click.option("--end-frame", default=None, type=int)
