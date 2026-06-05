@@ -15,7 +15,7 @@ from show_ball.utils.helpers import choose_device
 
 
 TEST_RESOURCES = Path(__file__).parent / "resources"
-WEIGHTS_PATH = TEST_RESOURCES / "models" / "best.pt"
+WEIGHTS_PATH = "run/weights/best.pt"
 
 def make_detection(x1=10, y1=20, x2=30, y2=40):
     return SimpleNamespace(x1=x1, y1=y1, x2=x2, y2=y2)
