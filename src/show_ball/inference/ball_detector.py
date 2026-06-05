@@ -10,24 +10,7 @@ import numpy.typing as npt
 import torch
 from ultralytics import YOLO
 
-
-@dataclass
-class Detection:
-    """
-    Detection dataclass.
-    """
-
-    # Coordinates of the bounding box (top-left and bottom-right corners)
-    x1: float
-    y1: float
-    x2: float
-    y2: float
-
-    # Confidence score of the detection
-    conf: float
-
-    # Class index of the detected object. For this is always 0
-    cls: int
+from show_ball.inference.utils import Detection
 
 
 class BallDetector:

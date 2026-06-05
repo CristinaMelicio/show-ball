@@ -14,7 +14,7 @@ PREDICTIONS_FILENAME: Final[str] = "predictions.csv"
 ANNOTATED_VIDEO_FILENAME: Final[str] = "video_with_predicitons.mp4"
 
 #: Tile size
-TILE_SIZE: Final[int] = 512
+TILE_SIZE: Final[int] = 640
 
 #: Crop size
 CROP_SIZE: Final[int] = 512
@@ -29,7 +29,7 @@ CONFIDENCE_THRESHOLD: Final[float] = 0.1
 IOU_THRESHOLD: Final[float] = 0.3
 
 #: Maximum of consecutive frames where the ball was not detected
-MAX_LOST_FRAMES: Final[int] = 1
+MAX_LOST_FRAMES: Final[int] = 10
 
 #: Number of frames to skip between detections when tracking is active (0 means no skipping)
 NUM_FRAMES_TO_SKIP: Final[int] = 0

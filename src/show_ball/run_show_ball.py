@@ -82,7 +82,7 @@ def run_tracking_pipeline_on_video(
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
     processed_frames = 0
-    frame_no, frame_counter = start_frame, 0
+    frame_no = start_frame
     elapsed_seconds = 0
 
     if show:
@@ -119,8 +119,8 @@ def run_tracking_pipeline_on_video(
                     )
 
                 elapsed = end_time - start_time
-                current_fps = frame_counter / elapsed if elapsed > 0 else 0.0
                 elapsed_seconds += elapsed
+                current_fps = processed_frames / elapsed_seconds if elapsed_seconds > 0 else 0.0
 
                 annotated_frame = draw_detection(frame, det, mode, current_fps)
                 video_writer.write(annotated_frame)
@@ -138,7 +138,6 @@ def run_tracking_pipeline_on_video(
 
                 processed_frames += 1
                 frame_no += 1
-                frame_counter += 1
 
     finally:
         cap.release()

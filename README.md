@@ -18,7 +18,7 @@
    ```
 3. Activate the virtual environment.
    ```
-   source .venv/bin/activate
+   source venv/bin/activate
    ```
 4. Check the installation.
    ```
@@ -212,14 +212,6 @@ Missing Detection Rate = Missing Detections / Ground Truth Frames
 ```
 
 ### Dataset 
-The dataset was generated from a single 8-minute video containing a ball under 
-varying positions and motion conditions. The video was recorded at 60 frames per 
-second (FPS), resulting in approximately 28,800 frames. Video frames were extracted
-and annotated using the provided ball center coordinates (ball_x, ball_y). 
-For object detection training, each point annotation was converted into a fixed-size
-bounding box centered on the ball and stored in YOLO format. 
-Frames without an annotation were included in the dataset with empty label files, 
-allowing the model to learn both the presence and absence of the target object.
 
 To create representative training, validation, and test sets while reducing temporal
 bias, the video was divided into contiguous segments. The segment length was set to 
@@ -267,4 +259,5 @@ ball_yolo_dataset/
 # Further Improvements
 - Improve the tensorRT conversion, currently the half precision in not working, I could also have implemented a 
 EnginePredictor with cupy.
-- 
+- Improve dataset generation with more videos, more ball positions and more variability in the background and 
+lighting conditions. There are some FPs in the feets of the players that could be reduced with more training data.

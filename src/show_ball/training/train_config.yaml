@@ -9,20 +9,7 @@ train:
   patience: 20
   fraction: 1
   freeze: 0
-  name: ball_yolo26_cos_lr
+  name: ball_yolo26
 
-# Color
-  hsv_h: 0.015
-  hsv_s: 0.5
-  hsv_v: 0.4
+  cos_lr: false
 
-  # Geometry
-  scale: 0.3
-
-  # Mixing
-  mosaic: 0.0
-  close_mosaic: 0
-
-  cos_lr: true
-  lr0: 0.002
-  lrf: 0.01
