@@ -1,7 +1,7 @@
 # ⚽ Soccer Ball Position Prediction
 ## Overview
 
-This project implements a soccer ball tracking pipeline for broadcast football videos.
+This project implements a ball tracking pipeline for soccer video games.
 
 ![Demo Pipeline](resources/docs/tracking_example.gif)
 
@@ -118,9 +118,11 @@ Reported metrics include:
 
 ## Dataset Generation
 
-The detector is trained using tiled crops extracted from football videos.
+The detector is trained using tiled crops extracted from a single 
+soccer video game.
 
-Because the ball occupies only a few pixels in the original broadcast frame, training is performed on **640×640 tiles**, matching the detector input resolution.
+Because the ball occupies only a few pixels in the original video game frame, 
+training is performed on **640×640 tiles**, matching the detector input resolution.
 
 ### Dataset Split
 
@@ -142,7 +144,6 @@ For frames containing a visible ball annotation:
 
 - One or more tiles are generated around the annotated position.
 - Random jitter is applied so the ball appears at different locations inside the crop.
-- YOLO annotations are generated automatically.
 
 To reduce redundancy, only every N-th annotated frame is used:
 
@@ -166,7 +167,8 @@ The expected ball position is estimated by interpolating neighboring annotations
 
 A tile centered on the estimated location is then saved as a negative sample.
 
-These hard negatives help reduce false positives in situations where the ball is hidden behind players or visually ambiguous.
+These hard negatives help reduce false positives in situations where the ball is hidden 
+behind players or visually ambiguous.
 
 ### Dataset Structure
 
