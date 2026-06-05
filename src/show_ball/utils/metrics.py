@@ -10,13 +10,29 @@ class RuntimeMetrics:
     Dataclass for the runtime metrics
     """
 
+    #: Total frames in the video.
     total_frames: int
+
+    #: Amount of frames processed.
     processed_frames: int
+
+    #: Frames per second of the video.
     video_fps: float
+
+    #: Processing frames per second by the tracking pipeline.
     processing_fps: float
+
+    #: Factor by which the processing is faster (greater than 1) or slower (less than 1) than the
+    # video FPS.
     realtime_factor: float
+
+    #: Elapsed time in seconds for processing the video.
     elapsed_seconds: float
+
+    #: Average CPU percentage usage.
     mean_cpu_percent: float
+
+    #: Maximum memory used.
     max_memory_mb: float
 
     def __str__(self) -> str:
@@ -92,18 +108,15 @@ class TrackingMetrics:
         )
 
 
-def is_missing(value: Any) -> bool:
-    return value is None or value == ""
-
-
 def calculate_metrics(
     predicted: list[dict],
     ground_truth: list[dict],
     distance_threshold_px: float = 10.0,
 ) -> TrackingMetrics:
+    """
 
+    """
     predicted_by_frame = {int(row["frame_no"]): row for row in predicted}
-
     ground_truth_by_frame = {int(row["frame_no"]): row for row in ground_truth}
 
     tp = 0
@@ -119,11 +132,6 @@ def calculate_metrics(
         pred = predicted_by_frame.get(frame_no, None)
 
         if pred is None:
-            fn += 1
-            missing_detections += 1
-            continue
-
-        if is_missing(pred["ball_x"]) or is_missing(pred["ball_y"]):
             fn += 1
             missing_detections += 1
             continue
@@ -144,9 +152,6 @@ def calculate_metrics(
     for frame_no, pred in predicted_by_frame.items():
         if frame_no in ground_truth_by_frame:
             continue
-
-        if not is_missing(pred["ball_x"]) and not is_missing(pred["ball_y"]):
-            fp += 1
 
     precision = tp / (tp + fp) if tp + fp > 0 else 0.0
     recall = tp / (tp + fn) if tp + fn > 0 else 0.0
@@ -175,6 +180,19 @@ def recall_at_threshold(
     total_gt_frames: int,
     threshold_px: float,
 ) -> float:
+    """
+    Calculate recall given a certain threshold in pixels.
+
+    Args:
+        errors: List of Euclidean distance errors in pixels between predicted and ground-truth ball
+        positions for each frame.
+        total_gt_frames: Total number of ground-truth frames.
+        threshold_px: Distance in pixels.
+
+    Return:
+        Recall @px_threshold.
+    """
+
     if total_gt_frames == 0:
         return 0.0
 

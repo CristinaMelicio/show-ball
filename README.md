@@ -256,7 +256,57 @@ ball_yolo_dataset/
 * images/train, images/val, images/test: Extracted video frames belonging to the training, validation, and test sets.
 * labels/train, labels/val, labels/test: YOLO annotation files corresponding to each image.
 
+## Performance
+
+The tracking pipeline was evaluated on the test split, comprising **15% of the dataset video**. The following metrics were obtained:
+
+| Metric | Value |
+|----------|---------:|
+| Precision | **0.9144** |
+| Recall | **0.8591** |
+| F1 Score | **0.8859** |
+| Recall @ 5 px | **0.6866** |
+| Recall @ 10 px | **0.8591** |
+| Recall @ 20 px | **0.9221** |
+| Mean Localization Error | **10.21 px** |
+| Median Localization Error | **3.16 px** |
+| 95th Percentile Error | **13.34 px** |
+| Missing Detection Rate | **6.56%** |
+
+### Summary
+
+The tracker achieves a strong balance between precision and recall, resulting in an **F1 score of 0.8859**. 
+Approximately **86%** of all ball positions are correctly detected within a **10-pixel tolerance**,
+while over **92%** are detected within **20 pixels** of the ground-truth location.
+
+Localization accuracy is high, 
+with a **median error of 3.16 pixels**,
+indicating that most detections are very 
+close to the annotated ball position. 
+The system maintains a relatively 
+low **missing detection rate of 6.56%**, 
+demonstrating robust tracking performance across 
+the test set.
+
+
+## Runtime Performance
+
+The pipeline was evaluated on an Apple Silicon M2 MacBook without a dedicated NVIDIA GPU.
+
+| Metric | Value |
+|----------|---------:|
+| Total Frames | **28,800** |
+| Processed Frames | **1,629** |
+| Input Video FPS | **60.00** |
+| Processing FPS | **44.15** |
+| Real-Time Factor | **0.74×** |
+| Elapsed Time | **36.90 s** |
+| Mean CPU Utilization | **76.2%** |
+| Peak Memory Usage | **422.7 MB** |
+
 # Further Improvements
+
+
 - Improve the tensorRT conversion, currently the half precision in not working, I could also have implemented a 
 EnginePredictor with cupy.
 - Improve dataset generation with more videos, more ball positions and more variability in the background and 
