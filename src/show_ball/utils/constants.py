@@ -26,7 +26,7 @@ OVERLAP: Final[float] = 0.1
 CONFIDENCE_THRESHOLD: Final[float] = 0.1
 
 #: IoU threshold
-IOU_THRESHOLD: Final[float] = 0.3
+IOU_THRESHOLD: Final[float] = 0.45
 
 #: Maximum of consecutive frames where the ball was not detected
 MAX_LOST_FRAMES: Final[int] = 10

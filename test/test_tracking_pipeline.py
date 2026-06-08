@@ -1,6 +1,7 @@
 """
 Tests for ball_tracker.py
 """
+
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -10,12 +11,18 @@ import pytest
 
 from show_ball.inference.ball_detector import BallDetector
 from show_ball.inference.ball_tracker import TrackerMode, BallTracker
-from show_ball.utils.constants import TILE_SIZE, OVERLAP, CONFIDENCE_THRESHOLD, IOU_THRESHOLD, CROP_SIZE
+from show_ball.utils.constants import (
+    TILE_SIZE,
+    OVERLAP,
+    CONFIDENCE_THRESHOLD,
+    IOU_THRESHOLD,
+    CROP_SIZE,
+)
 from show_ball.utils.helpers import choose_device
-
 
 TEST_RESOURCES = Path(__file__).parent / "resources"
 WEIGHTS_PATH = "run/weights/best.pt"
+
 
 def make_detection(x1=10, y1=20, x2=30, y2=40):
     return SimpleNamespace(x1=x1, y1=y1, x2=x2, y2=y2)
@@ -40,7 +47,7 @@ def tile_frame():
 def detector():
     return BallDetector(
         weights=WEIGHTS_PATH,
-        device=choose_device('auto'),
+        device=choose_device("auto"),
         tile_size=TILE_SIZE,
         overlap=OVERLAP,
         confidence_threshold=CONFIDENCE_THRESHOLD,
@@ -181,7 +188,9 @@ def test_reset_tracking_clears_state(tracker):
     assert tracker._lost_frames_counter == 0
 
 
-def test_process_frame_marks_lost_when_crop_detection_fails_but_does_not_reacquire_yet(tracker, sample_frame):
+def test_process_frame_marks_lost_when_crop_detection_fails_but_does_not_reacquire_yet(
+    tracker, sample_frame
+):
 
     tracker._last_detection = make_detection(x1=40, y1=40, x2=60, y2=60)
     det, mode = tracker.process_frame(sample_frame)
@@ -226,7 +235,10 @@ def test_process_frame_runs_full_frame_detection_when_not_tracking(tracker, full
     assert det.cls == 0
     assert det.conf >= 0.1
 
-def test_process_frame_returns_lost_when_not_tracking_and_full_frame_detection_fails(tracker, sample_frame):
+
+def test_process_frame_returns_lost_when_not_tracking_and_full_frame_detection_fails(
+    tracker, sample_frame
+):
     det, mode = tracker.process_frame(sample_frame)
 
     assert det is None

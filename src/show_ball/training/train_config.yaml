@@ -1,12 +1,12 @@
 model: yolo26n.pt
-data: /Users/cmelicio/PycharmProjects/show-ball/resources/dataset/data.yaml
+data: /Users/cmelicio/PycharmProjects/show-ball/resources/dataset/ball_dataset_new/data.yaml
 
 train:
   imgsz: 640
-  epochs: 100
+  epochs: 50
   batch: 8
   workers: 0
-  patience: 20
+  patience: 10
   fraction: 1
   freeze: 0
   name: ball_yolo26

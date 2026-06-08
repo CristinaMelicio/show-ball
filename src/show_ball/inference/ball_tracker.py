@@ -11,8 +11,7 @@ import numpy as np
 import numpy.typing as npt
 
 from show_ball.inference.ball_detector import BallDetector
-from show_ball.inference.utils import detection_iou, center_distance, Detection, center_position
-
+from show_ball.inference.utils import Detection, center_distance, center_position, detection_iou
 
 #: Weight given to the IoU between current detections and previous detection for deciding
 # whether a detection is consistent with the previous detection
@@ -40,11 +39,11 @@ class BallTracker:
     """
 
     def __init__(
-            self,
-            predictor: BallDetector,
-            crop_size: int,
-            max_lost_frames: int,
-            num_frames_to_skip: int,
+        self,
+        predictor: BallDetector,
+        crop_size: int,
+        max_lost_frames: int,
+        num_frames_to_skip: int,
     ):
         """
         Args:
@@ -109,7 +108,7 @@ class BallTracker:
         x0 = max(0, min(x0, frame.shape[1] - self._crop_size))
         y0 = max(0, min(y0, frame.shape[0] - self._crop_size))
 
-        crop = frame[y0: y0 + self._crop_size, x0: x0 + self._crop_size]
+        crop = frame[y0 : y0 + self._crop_size, x0 : x0 + self._crop_size]
         return crop, x0, y0
 
     def _update_detection(self, det: Detection) -> None:
@@ -130,15 +129,21 @@ class BallTracker:
         """
 
         return (
-                self.is_tracking
-                and self._num_frames_to_skip > 0
-                and self._frame_counter % (self._num_frames_to_skip + 1) != 1
+            self.is_tracking
+            and self._num_frames_to_skip > 0
+            and self._frame_counter % (self._num_frames_to_skip + 1) != 1
         )
 
     def _run_crop_detection(self, frame: npt.NDArray[np.uint8]) -> Detection | None:
         """
         Runs predictor on a cropped region and selects the detection that is most consistent with
         the previous detection.
+
+        Args:
+            frame: Original frame.
+
+        Returns:
+            Detection in the original frame. None if there is no prediction.
         """
 
         if self._last_detection is None:
@@ -166,17 +171,21 @@ class BallTracker:
         def score(det: Detection) -> float:
             """
             Scores a detection based on its IoU and center distance to the previous detection.
+
+            Args:
+                det: Detection.
+
+            Returns:
+                Score of the detection.
             """
+
             iou = detection_iou(previous, det)
             dist = center_distance(previous, det)
 
             # Normalize distance. 0px -> 1.0, crop_size or more -> 0.0
             distance_score = max(0.0, 1.0 - dist / self._crop_size)
 
-            return (
-                    IOU_WEIGHT_FOR_TRACKING * iou
-                    + DISTANCE_WEIGHT_FOR_TRACKING * distance_score
-            )
+            return IOU_WEIGHT_FOR_TRACKING * iou + DISTANCE_WEIGHT_FOR_TRACKING * distance_score
 
         return max(detections, key=score)
 
@@ -197,7 +206,6 @@ class BallTracker:
             return None
 
         return max(detections, key=lambda d: d.conf)
-
 
     def _should_run_full_frame_detection(self) -> bool:
         """
@@ -224,11 +232,14 @@ class BallTracker:
         self._lost_frames_counter = 0
 
     def process_frame(
-            self,
-            frame: npt.NDArray[np.uint8],
+        self,
+        frame: npt.NDArray[np.uint8],
     ) -> tuple[Detection | None, TrackerMode]:
         """
         Processes a frame.
+
+        Args:
+            frame: Original frame.
 
         Returns:
             Detection and tracker mode.

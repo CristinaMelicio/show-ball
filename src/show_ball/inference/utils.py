@@ -1,4 +1,10 @@
+"""
+Utilities for representing detections and computing geometric relationships
+between them.
+"""
+
 from dataclasses import dataclass
+from math import hypot
 
 
 @dataclass
@@ -38,6 +44,17 @@ def center_position(det: Detection) -> tuple[int, int]:
 
 
 def detection_iou(a: Detection, b: Detection) -> float:
+    """
+    Compute the Intersection over Union (IoU) between two detections.
+
+    Args:
+        a: First detection.
+        b: Second detection.
+
+    Returns:
+        The IoU score between the two bounding boxes.
+    """
+
     x1 = max(a.x1, b.x1)
     y1 = max(a.y1, b.y1)
     x2 = min(a.x2, b.x2)
@@ -59,7 +76,20 @@ def detection_iou(a: Detection, b: Detection) -> float:
 
 
 def center_distance(a: Detection, b: Detection) -> float:
+    """
+    Compute the Euclidean distance between the centers of two detections.
+
+    Args:
+
+        a: First detection.
+        b: Second detection.
+
+    Returns:
+        The Euclidean distance, in pixels, between the centers of the two
+        bounding boxes.
+    """
+
     ax, ay = center_position(a)
     bx, by = center_position(b)
 
-    return float(((ax - bx) ** 2 + (ay - by) ** 2) ** 0.5)
+    return hypot(ax - bx, ay - by)

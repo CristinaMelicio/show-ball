@@ -1,7 +1,11 @@
+"""
+Module with functions for calculating tracking and runtime metrics for evaluating the performance of
+a ball tracking pipeline against ground truth annotations.
+"""
+
 from dataclasses import dataclass
 from math import hypot
 from statistics import mean, median
-from typing import Any
 
 
 @dataclass
@@ -113,9 +117,7 @@ def calculate_metrics(
     ground_truth: list[dict],
     distance_threshold_px: float = 10.0,
 ) -> TrackingMetrics:
-    """
-
-    """
+    """ """
     predicted_by_frame = {int(row["frame_no"]): row for row in predicted}
     ground_truth_by_frame = {int(row["frame_no"]): row for row in ground_truth}
 

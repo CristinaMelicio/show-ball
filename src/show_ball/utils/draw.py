@@ -1,3 +1,7 @@
+"""
+Module with utility functions for drawing detections and tracking information on video frames.
+"""
+
 import cv2
 import numpy as np
 import numpy.typing as npt
@@ -8,7 +12,20 @@ from show_ball.inference.ball_tracker import TrackerMode, center_position
 
 def draw_detection(
     frame: npt.NDArray[np.uint8], det: Detection | None, mode: TrackerMode, fps: float
-):
+) -> npt.NDArray[np.uint8]:
+    """
+    Draws the detection and tracking information on the frame.
+
+    Args:
+        frame: Original frame.
+        det: Detection object.
+        mode: Tracker mode.
+        fps: Current frames per second.
+
+    Returns:
+        Frame with detection and tracking information.
+    """
+
     if det is not None:
         x1 = int(det.x1)
         y1 = int(det.y1)
@@ -25,6 +42,7 @@ def draw_detection(
         )
 
         cx, cy = center_position(det)
+
         # Center point
         cv2.circle(
             frame,

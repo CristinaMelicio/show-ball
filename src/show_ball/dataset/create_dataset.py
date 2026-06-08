@@ -4,15 +4,22 @@ Convert a video and CSV labels into a YOLO tiled dataset.
 
 import argparse
 import csv
-import cv2
 import json
-import numpy as np
-import numpy.typing as npt
 import random
 from pathlib import Path
-from show_ball.dataset.helpers import make_negative_tile, make_positive_tile, find_neighbor_labels, \
-    estimate_missing_ball_position
-from show_ball.dataset.helpers import make_hard_negative_tile_near_position
+
+import cv2
+import numpy as np
+import numpy.typing as npt
+
+from show_ball.dataset.helpers import (
+    estimate_missing_ball_position,
+    find_neighbor_labels,
+    make_hard_negative_tile_near_position,
+    make_negative_tile,
+    make_positive_tile,
+)
+
 
 def read_labels(csv_path: str) -> dict[int, tuple[float, float]]:
     """
@@ -61,7 +68,7 @@ def make_segments(total_frames: int, segment_len: int) -> list[tuple[int, int]]:
 
 
 def split_segments(
-        segments: list[tuple[int, int]], train_ratio: float, val_ratio: float, seed: int
+    segments: list[tuple[int, int]], train_ratio: float, val_ratio: float, seed: int
 ) -> dict[str, list[tuple[int, int]]]:
     """
     Randomly shuffles and splits the list of segments into training, validation, and test sets
@@ -87,8 +94,8 @@ def split_segments(
 
     return {
         "train": segments[:n_train],
-        "val": segments[n_train: n_train + n_val],
-        "test": segments[n_train + n_val:],
+        "val": segments[n_train : n_train + n_val],
+        "test": segments[n_train + n_val :],
     }
 
 
@@ -115,7 +122,7 @@ def get_split_for_frame(frame_idx: int, split_map: dict[str, list[tuple[int, int
 
 
 def yolo_box_from_xy(
-        x: float, y: float, img_w: int, img_h: int, box_w: int, box_h: int
+    x: float, y: float, img_w: int, img_h: int, box_w: int, box_h: int
 ) -> tuple[float, float, float, float]:
     """
     Converts (x, y) coordinates of the ball into YOLO format (x_center, y_center, width, height)
@@ -143,7 +150,7 @@ def yolo_box_from_xy(
 
 
 def ball_box_xyxy(
-        x: float, y: float, box_w: float, box_h: float
+    x: float, y: float, box_w: float, box_h: float
 ) -> tuple[float, float, float, float]:
     """
     Given the (x, y) coordinates of the ball and the desired width and height of the bounding box,
@@ -169,13 +176,13 @@ def ball_box_xyxy(
 
 
 def yolo_label_for_tile(
-        ball_x: float,
-        ball_y: float,
-        tile_x0: int,
-        tile_y0: int,
-        tile_size: int,
-        box_w: float,
-        box_h: float,
+    ball_x: float,
+    ball_y: float,
+    tile_x0: int,
+    tile_y0: int,
+    tile_size: int,
+    box_w: float,
+    box_h: float,
 ) -> tuple[float, float, float, float] | None:
     """
     Calculates the YOLO label (x_center, y_center, width, height) for the ball relative to a given
@@ -207,21 +214,21 @@ def yolo_label_for_tile(
 
 
 def save_tile(
-        frame: npt.NDArray[np.uint8],
-        out_dir: Path,
-        split_name: str,
-        stem: str,
-        tile_idx: int,
-        x0: int,
-        y0: int,
-        tile_size: int,
-        label=None,
+    frame: npt.NDArray[np.uint8],
+    out_dir: Path,
+    split_name: str,
+    stem: str,
+    tile_idx: int,
+    x0: int,
+    y0: int,
+    tile_size: int,
+    label=None,
 ) -> None:
     """
     Saves a tile of the frame as an image and its corresponding label in YOLO format.
     """
 
-    tile = frame[y0: y0 + tile_size, x0: x0 + tile_size]
+    tile = frame[y0 : y0 + tile_size, x0 : x0 + tile_size]
     image_out = out_dir / "images" / split_name / f"{stem}_tile_{tile_idx:03d}.jpg"
     label_out = out_dir / "labels" / split_name / f"{stem}_tile_{tile_idx:03d}.txt"
 
@@ -256,7 +263,9 @@ def main():
     parser.add_argument("--train-ratio", type=float, default=0.7)
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--frame-start",type=int, default=160, help="Ignore all frames before this frame index")
+    parser.add_argument(
+        "--frame-start", type=int, default=160, help="Ignore all frames before this frame index"
+    )
     args = parser.parse_args()
 
     random.seed(args.seed)

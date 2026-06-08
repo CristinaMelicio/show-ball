@@ -103,7 +103,6 @@ def make_hard_negative_tile_near_position(
     img_w: int,
     img_h: int,
     tile_size: int,
-    forbidden_box: tuple[float, float, float, float],
     offset_min: int,
     offset_max: int,
     max_tries: int = 20,
@@ -122,7 +121,6 @@ def make_hard_negative_tile_near_position(
         y0 = int(y - tile_size / 2 + offset_y)
         x0, y0 = clamp_tile_xy(x0, y0, tile_size, tile_size, img_w, img_h)
 
-        tile_box = (x0, y0, x0 + tile_size, y0 + tile_size)
         if x0 <= x < x0 + tile_size and y0 <= y < y0 + tile_size:
             return x0, y0
 

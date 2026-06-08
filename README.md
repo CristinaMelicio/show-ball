@@ -148,7 +148,7 @@ For frames containing a visible ball annotation:
 To reduce redundancy, only every N-th annotated frame is used:
 
 ```text
-frame_stride = 10
+frame_stride = 5
 ```
 
 This avoids training on nearly identical consecutive frames.
@@ -194,18 +194,18 @@ The dataset follows the standard YOLO detection format.
 
 Evaluation on the test split produced:
 
-| Metric | Value |
+| Metric |    Value |
 |----------|---------:|
-| Precision | 0.914 |
-| Recall | 0.859 |
-| F1 Score | 0.886 |
-| Recall @ 5 px | 0.687 |
-| Recall @ 10 px | 0.859 |
-| Recall @ 20 px | 0.922 |
-| Mean Error | 10.21 px |
-| Median Error | 3.16 px |
-| P95 Error | 13.34 px |
-| Missing Detection Rate | 6.56% |
+| Precision |    0.943 |
+| Recall |    0.867 |
+| F1 Score |    0.904 |
+| Recall @ 5 px |    0.693 |
+| Recall @ 10 px |    0.867 |
+| Recall @ 20 px |    0.909 |
+| Mean Error |  5.69 px |
+| Median Error |  3.31 px |
+| P95 Error | 10.74 px |
+| Missing Detection Rate |    8.02% |
 
 The tracker achieves high localization accuracy while maintaining a low missed-detection rate.
 

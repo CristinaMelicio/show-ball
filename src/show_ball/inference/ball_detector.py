@@ -2,7 +2,6 @@
 YOLO tiled inference predictor.
 """
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -140,6 +139,9 @@ class BallDetector:
             images: Input images to preprocess.
             use_tiles: Whether to tile the input images. If True, we perform the inference on the
             tiles otherwise we perform the inference a single image.
+
+        Returns:
+            Detections per original image.
         """
 
         tiles = self.pre_processing(images, use_tiles)

@@ -9,7 +9,7 @@ import click
 import yaml
 from ultralytics import YOLO
 
-from show_ball.utils import choose_device
+from show_ball.utils.helpers import choose_device
 
 
 def get_test_images(data_yaml: str) -> list[Path]:
@@ -31,8 +31,9 @@ def get_test_images(data_yaml: str) -> list[Path]:
 @click.option("--weights", required=True, type=click.Path(exists=True))
 @click.option("--device", default="mps", type=str)
 @click.option("--samples", default=50, type=int)
-@click.option("--conf", default=0.1, type=float)
+@click.option("--conf", default=0.01, type=float)
 @click.option("--out-dir", default="eval/ball_yolo26_test", type=str)
+@click.option("--save", is_flag=True, help="Whether to save sample predictions on test images.")
 def main(
     config: str,
     weights: str,
@@ -40,6 +41,7 @@ def main(
     samples: int,
     conf: float,
     out_dir: str,
+    save: bool,
 ):
     device = choose_device(device)
 
@@ -59,40 +61,40 @@ def main(
         split="test",
         device=device,
         imgsz=imgsz,
-        batch=train_cfg.get("batch", 4),
+        batch=train_cfg.get("batch", 8),
         conf=conf,
         plots=True,
         project=out_dir,
-        fraction=0.1,  # 10% do test set
+        fraction=1,
         name="metrics",
     )
-
     click.echo("\nTest metrics:")
     click.echo(f"mAP50:     {metrics.box.map50:.4f}")
     click.echo(f"mAP50-95:  {metrics.box.map:.4f}")
     click.echo(f"Precision: {metrics.box.mp:.4f}")
     click.echo(f"Recall:    {metrics.box.mr:.4f}")
 
-    test_images = get_test_images(data_yaml)
+    if save:
+        test_images = get_test_images(data_yaml)
 
-    if not test_images:
-        raise RuntimeError(f"No test images found in {data_yaml}")
+        if not test_images:
+            raise RuntimeError(f"No test images found in {data_yaml}")
 
-    selected = random.sample(test_images, min(samples, len(test_images)))
+        selected = random.sample(test_images, min(samples, len(test_images)))
 
-    click.echo(f"\nRunning predictions on {len(selected)} test images...")
+        click.echo(f"\nRunning predictions on {len(selected)} test images...")
 
-    model.predict(
-        source=[str(p) for p in selected],
-        device=device,
-        imgsz=imgsz,
-        conf=conf,
-        save=True,
-        save_txt=True,
-        save_conf=True,
-        project=out_dir,
-        name="samples",
-    )
+        model.predict(
+            source=[str(p) for p in selected],
+            device=device,
+            imgsz=imgsz,
+            conf=conf,
+            save=True,
+            save_txt=True,
+            save_conf=True,
+            project=out_dir,
+            name="samples",
+        )
 
     click.echo(f"\nDone. Results saved to: {out_dir}")
 
